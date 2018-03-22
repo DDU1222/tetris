@@ -1,0 +1,47 @@
+<!--unit模块-->
+<template name="unit">
+  <i class="unit {{ active && 'active'}} {{ locked && 'locked'}}" style="height:{{1000 / rows + 'rpx'}};"/>
+</template>
+<!--index.wxml-->
+<template name="test">
+  <view></view>
+</template>
+
+<view class="container">
+  <!--展示区-->
+  <view class="display-container">
+    <!--方块显示-->
+    <view class="display-block">
+      <block wx:for="{{columns}}" wx:key="unique" wx:for-index="idx">
+        <view class="column" style="width:{{1 / columns * 100 + '%'}};">
+          <block wx:for="{{rows}}" wx:key="unique" wx:for-index="idy">
+            <wxs src="./unit.wxs" module="calculate" />
+            <template
+              is="unit"
+              data="{{rows, active: calculate.active(activePoints, idx, idy), locked: calculate.locked(lockedPoints, idx, idy)}}"/>
+          </block>
+        </view>
+      </block>
+    </view>
+    <!--分数记录-->
+    <view class="display-fraction">
+    得分： {{fraction}}
+    </view>
+  </view>
+  <!--操作区-->
+  <view class="action-container">
+    <i class="act-btn btn-change" bindtap="dropDown">掉落</i>
+    <view class="direction-btns">
+      <view>
+        <i class="act-btn btn-left" bindtap="turnLeft">左移</i>
+      </view>
+      <view class="act-btn-center">
+        <i class="act-btn btn-top">旋转</i>
+        <i class="act-btn btn-bottom">下移</i>
+      </view>
+      <view>
+        <i class="act-btn btn-right" bindtap="turnRight">右移</i>
+      </view>
+    </view>
+  </view>
+</view>

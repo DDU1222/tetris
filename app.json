@@ -1,0 +1,11 @@
+{
+  "pages":[
+    "pages/index/index",
+    "pages/logs/logs"
+  ],
+  "window":{
+    "navigationBarBackgroundColor": "#0E103D",
+    "navigationBarTitleText": "俄罗斯方块",
+    "navigationBarTextStyle":"#fff"
+  }
+}

@@ -1,0 +1,14 @@
+var active = function (activePoints, idx, idy) {
+  return activePoints.some(function (point) {
+    return point[0] === idx && point[1] === idy
+  })
+}
+var locked = function (lockedPoints, idx, idy) {
+  return lockedPoints.some(function (point) {
+    return point[0] === idx && point[1] === idy
+  })
+}
+module.exports = {
+  active: active,
+  locked: locked
+};

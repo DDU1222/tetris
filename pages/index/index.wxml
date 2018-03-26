@@ -1,6 +1,6 @@
 <!--unit模块-->
 <template name="unit">
-  <i class="unit {{ active && 'active'}} {{ locked && 'locked'}}" style="height:{{1000 / rows + 'rpx'}};"/>
+  <i class="unit {{ active && 'active'}} {{ locked && 'locked'}} {{ noticed && 'noticed'}}" style="height:{{1000 / rows + 'rpx'}};"/>
 </template>
 <!--index.wxml-->
 <template name="test">
@@ -18,25 +18,31 @@
             <wxs src="./unit.wxs" module="calculate" />
             <template
               is="unit"
-              data="{{rows, active: calculate.active(activePoints, idx, idy), locked: calculate.locked(lockedPoints, idx, idy)}}"/>
+              data="{{rows, active: calculate.active(activePoints, idx, idy), locked: calculate.locked(lockedPoints, idx, idy), noticed: calculate.noticed(blinkingCols, idy)}}"/>
           </block>
         </view>
       </block>
     </view>
     <!--分数记录-->
     <view class="display-fraction">
-    得分： {{fraction}}
+    消除行数： {{fraction}}
     </view>
   </view>
   <!--操作区-->
   <view class="action-container">
-    <i class="act-btn btn-change" bindtap="dropDown">掉落</i>
+    <view>
+      <view class="control-btns">
+        <i class="act-btn smart btn-pause" bindtap="pause">{{start ? '暂停' : '开始'}}</i>
+        <i class="act-btn smart btn-pause" bindtap="restart">重玩</i>
+      </view>
+      <i class="act-btn btn-change" bindtap="turnDown">掉落</i>
+    </view>
     <view class="direction-btns">
       <view>
         <i class="act-btn btn-left" bindtap="turnLeft">左移</i>
       </view>
       <view class="act-btn-center">
-        <i class="act-btn btn-top">旋转</i>
+        <i class="act-btn btn-top" bindtap="turnRotate">旋转</i>
         <i class="act-btn btn-bottom">下移</i>
       </view>
       <view>

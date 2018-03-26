@@ -8,7 +8,13 @@ var locked = function (lockedPoints, idx, idy) {
     return point[0] === idx && point[1] === idy
   })
 }
+var noticed = function (blinkingCols, idy) {
+  return blinkingCols.some(function (col) {
+    return col === idy
+  })
+}
 module.exports = {
   active: active,
-  locked: locked
+  locked: locked,
+  noticed: noticed
 };

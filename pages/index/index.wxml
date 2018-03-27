@@ -26,16 +26,35 @@
     <!--分数记录-->
     <view class="display-fraction">
       <view>
-        得分： {{fraction}}
+        <view class="label">我的最高分：</view>
+        <view class="right">{{highestScore}}</view>
       </view>
       <view>
-        消除行数： {{clearLines}}
+        <view class="label">得分：</view>
+        <view class="right">{{fraction}}</view>
       </view>
       <view>
-        级别 {{level}}
+        <view class="label">消除行数：</view>
+        <view class="right">{{clearLines}}</view>
       </view>
       <view>
-        下一个： {{nextRandom}}
+        <view class="label">级别：</view>
+        <view class="right">{{level}}</view>
+      </view>
+      <view>
+        <view class="label">下一个：</view>
+        <view class="display-block right">
+          <block wx:for="{{4}}" wx:key="unique" wx:for-index="idx">
+            <view class="column" style="width: 40rpx;">
+              <block wx:for="{{3}}" wx:key="unique" wx:for-index="idy">
+                <wxs src="./unit.wxs" module="calculate" />
+                <template
+                  is="unit"
+                  data="{{rows: 25, locked: calculate.locked(readyPoints, idx, idy)}}"/>
+              </block>
+            </view>
+          </block>
+        </view>
       </view>
     </view>
   </view>

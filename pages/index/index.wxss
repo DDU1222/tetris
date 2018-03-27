@@ -42,6 +42,16 @@
   border-radius:6rpx;
 }
 
+.label {
+  padding-left: 20rpx;
+  margin-bottom: 20rpx;
+}
+
+.right {
+  text-align: right;
+  float: right;
+}
+
 .active{
   background: #ED6A5E;
 }
@@ -69,7 +79,7 @@
   width: 40%;
   height: 100%;
   box-sizing: border-box;
-  padding-left: 40rpx;
+  padding: 20rpx;
   font-size: 28rpx;
   color:#fff;
   display: flex;

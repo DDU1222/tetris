@@ -13,8 +13,9 @@ var noticed = function (blinkingCols, idy) {
     return col === idy
   })
 }
+
 module.exports = {
   active: active,
   locked: locked,
-  noticed: noticed
+  noticed: noticed,
 };

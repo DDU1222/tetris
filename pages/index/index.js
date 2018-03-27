@@ -20,11 +20,17 @@ Page({
     start: false,
     activePoints: [], // 正在掉落的方块点组合
     lockedPoints: [],  // 已经固定的方块点集合
+    readyPoints: [],
     speed: 500,
     direction: 0, // 默认是top
     readyCols: [],
     blinkingCols: [],
     blinkingCount: 2,
+  },
+  onShow: function() {
+    this.setData({
+      highestScore: wx.getStorageSync('highestScore') || 0
+    });
   },
   createRandom: function () {
     // 创建随机数 选择使用哪种方块组合
@@ -39,6 +45,7 @@ Page({
         random: nextRandom,
         nextRandom: this.createRandom(),
       }, () => {
+        this.createReadyPoints();
         this.setStartLocation();
         this.autoDrop(speed);
       });
@@ -73,22 +80,40 @@ Page({
       }
     }, speed);
   },
+  gameOverAnimation: function () {
+    const { rows } = this.data;
+    for (let k = rows - 1; k > -rows - 1; k--) {
+      setTimeout((k) => {
+        let newCols = this.data.blinkingCols.slice(0);
+        if (k < 0) {
+          newCols.splice(rows + k, 1);
+        } else {
+          newCols.push(k);
+        }
+        this.setData({
+          blinkingCols: newCols
+        });
+      }, 50 * (rows - k), k);
+    }
+  },
+  createReadyPoints: function () {
+    this.setData({
+      readyPoints: BOXES[this.data.nextRandom][0](1, 1)
+    });
+  },
   // 游戏结束
   stopGame: function () {
     // 清除循环读点 
     clearInterval(this.timeCount);
-    wx.showToast({
-      title: '游戏结束！',
-      icon: 'none',
-      duration: 3000,
-      success: () => {
-        this.setData({
-          lockedPoints: [],
-          activePoints: [],
-          start: false
-        })
-      }
-    })
+    this.resetData()
+    .then(() => {
+      this.gameOverAnimation();
+      wx.showToast({
+        title: '游戏结束！',
+        icon: 'none',
+        duration: 3000,
+      })
+    });
   },
   // 游戏暂停 开始
   pause: function () {
@@ -104,26 +129,36 @@ Page({
       this.setData({ start: false });
     }
   },
+  resetData: function () {
+    return new Promise((resolve, reject) => {
+      this.setData({
+        fraction: 0,      // 累计分数
+        level: 1,
+        speed: 500,
+        clearLines: 0,
+        centerX: 0,
+        y: 0,
+        start: false,
+        random: 0,
+        nextRandom: 0,
+        activePoints: [],
+        lockedPoints: [],
+        direction: 0,
+        readyCols: [],
+        blinkingCols: [],
+        readyPoints: [],
+        highestScore: wx.getStorageSync('highestScore') || 0
+      }, () => {
+        resolve();
+      });
+    });
+  },
   // 重新开始
   restart: function () {
     // 第一次 开始掉落
     this.animationBtn(6);
-    this.setData({
-      fraction: 0,      // 累计分数
-      level: 1,
-      speed: 500,
-      clearLines: 0,
-      centerX: 0,
-      y: 0,
-      random: 0,
-      nextRandom: 0,
-      start: true,
-      activePoints: [], // 正在掉落的方块点组合
-      lockedPoints: [],  // 已经固定的方块点集合
-      direction: 0, // 默认是top
-      readyCols: [],
-      blinkingCols: [],
-      }, () => {
+    this.resetData()
+    .then(() => {
       this.autoDrop(this.data.speed);
     });
   },
@@ -176,6 +211,7 @@ Page({
       // 一个方块结束, 触发下一个
       this.start();
     } else {
+      this.writeScore(this.data.fraction);
       this.stopGame();
     }
   },
@@ -213,7 +249,7 @@ Page({
   },
   animationBtn: function(num) {
     var animation = wx.createAnimation({
-      duration: 70,
+      duration: 40,
       transformOrigin: "50% 50%",
       timingFunction: "ease-out",
       delay: 0
@@ -295,7 +331,8 @@ Page({
   checkLeftBoundary: function () {
     const { direction, centerX, y, random } = this.data;
     const curPonits = BOXES[random][direction](centerX - 1, y);
-    return  curPonits.every((point) => {
+    const isExist = this.checkCompliance(curPonits);
+    return  !isExist && curPonits.every((point) => {
       return point[0] >= 0
     });
   },
@@ -303,7 +340,8 @@ Page({
   checkRightBoundary: function () {
     const { direction, centerX, y, random } = this.data;
     const curPonits = BOXES[random][direction](centerX + 1, y);
-    return curPonits.every((point) => {
+    const isExist = this.checkCompliance(curPonits);
+    return !isExist && curPonits.every((point) => {
       return point[0] < this.data.columns
     });
   },
@@ -328,5 +366,25 @@ Page({
     // 选取下落中心x轴坐标 若列数为奇数 若列数为偶数 
     const centerX = !!(this.data.columns % 2) ? (this.data.columns + 1) / 2 : this.data.columns / 2 - 1;
     this.setData({ centerX, y: 0, direction: 0 });
+  },
+  writeScore: function (score) {
+    try {
+      const highestScore = wx.getStorageSync('highestScore') || 0;
+      if (highestScore) {
+        if (highestScore < score) {
+          wx.setStorage({
+            key:"highestScore",
+            data: score
+          });
+        }
+      } else {
+        wx.setStorage({
+          key:"highestScore",
+          data: score
+        });
+      }
+    } catch (e) {
+      console.log('e', e);
+    }
   }
 })

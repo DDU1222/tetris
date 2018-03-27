@@ -11,9 +11,12 @@ Page({
     rows:     20,     // 方块行数
     columns:  10,     // 方块列数
     fraction: 0,      // 累计分数
+    clearLines: 0,    // 消除行数
+    level: 1,         // 级别
     centerX: 0,
     y: 0,
     random: 0,        // 正在掉落的方块组合代号
+    nextRandom: 0,
     start: false,
     activePoints: [], // 正在掉落的方块点组合
     lockedPoints: [],  // 已经固定的方块点集合
@@ -21,23 +24,35 @@ Page({
     direction: 0, // 默认是top
     readyCols: [],
     blinkingCols: [],
-    blinkingCount: 2
-  },
-  onLoad: function () {
-    // this.start();
+    blinkingCount: 2,
   },
   createRandom: function () {
     // 创建随机数 选择使用哪种方块组合
-    this.setData({ random: util.createRandom(Object.getOwnPropertyNames(BOXES).length) });
+    return util.createRandom(Object.getOwnPropertyNames(BOXES).length);
   },
   // 初始设置
   start: function () {
-    const { speed } = this.data;
-    this.setData({ start: true }, () => {
-      this.createRandom();
-      this.setStartLocation();
-      this.autoDrop(speed);
-    });
+    const { speed, start, nextRandom } = this.data;
+    // 已经开始 
+    if (start) {
+      this.setData({
+        random: nextRandom,
+        nextRandom: this.createRandom(),
+      }, () => {
+        this.setStartLocation();
+        this.autoDrop(speed);
+      });
+      // 未开始
+    } else {
+      this.setData({
+        start: true,
+        random: this.createRandom(),
+        nextRandom: this.createRandom(),
+      }, () => {
+        this.setStartLocation();
+        this.autoDrop(speed);
+      });
+    }
   },
   // 开始掉落
   autoDrop: function (speed) {
@@ -78,6 +93,7 @@ Page({
   // 游戏暂停 开始
   pause: function () {
     const { start, lockedPoints, speed } = this.data;
+    this.animationBtn(5);
     if (!start) {
       // 第一次 开始掉落
       this.setData({ start: true }, () => {
@@ -91,11 +107,16 @@ Page({
   // 重新开始
   restart: function () {
     // 第一次 开始掉落
+    this.animationBtn(6);
     this.setData({
       fraction: 0,      // 累计分数
+      level: 1,
+      speed: 500,
+      clearLines: 0,
       centerX: 0,
       y: 0,
       random: 0,
+      nextRandom: 0,
       start: true,
       activePoints: [], // 正在掉落的方块点组合
       lockedPoints: [],  // 已经固定的方块点集合
@@ -140,6 +161,7 @@ Page({
           this.setData({
             blinkingCols: count % 2 ? this.data.readyCols : []
           });
+          wx.vibrateLong(); // 震动两下
         } else {
           clearInterval(this.blinkingFn);
           resolve()
@@ -159,7 +181,7 @@ Page({
   },
   // 检查是否有可消除的行 进行消除
   clearLines: function () {
-    const { rows, columns, lockedPoints, fraction } = this.data;
+    const { rows, columns, lockedPoints, fraction, clearLines, level, speed } = this.data;
     
     let newPoints = []
     let readyCols = []
@@ -173,7 +195,10 @@ Page({
     }
     if (readyCols.length > 0) {
       this.setData({
-        fraction: fraction + readyCols.length,
+        clearLines: clearLines + readyCols.length,
+        fraction: fraction + readyCols.length * level, // 分数 = 原始分数 + 消除行数 * 级别
+        level: Math.floor(clearLines / 10) + 1,  // 每消十行 增加一个level
+        speed: speed - 10 * readyCols.length,        // 速度 = 速度 - 10 * 消除行数
         readyCols
       });
       //  比要消除行数 y值小的都加
@@ -186,17 +211,46 @@ Page({
       return lockedPoints;
     }
   },
-  // 点击开始 || 快速掉落
-  turnDown: function () {
+  animationBtn: function(num) {
+    var animation = wx.createAnimation({
+      duration: 70,
+      transformOrigin: "50% 50%",
+      timingFunction: "ease-out",
+      delay: 0
+    });
+    this.animation = animation;
+
+    animation.scale3d(0.85,0.85).step()
+    animation.scale3d(1,1).step()
+    this.setData({
+      ['animationData' + num]: animation.export()
+    })
+  },
+  // 快速掉落
+  dropDown: function () {
     const { start } = this.data;
     if (!start) return;
-    // 之后 就是直接掉落  TODO  最后一行未必是rows
+    // 之后 就是直接掉落
+    this.animationBtn(0);
     this.autoDrop(5);
+  },
+  // 下移
+  turnDown: function () {
+    const { start, y } = this.data;
+    if (!start) return;
+    this.animationBtn(3);
+    const isAllow = this.checkDownBoundary()
+    if (isAllow) {
+      this.setData({
+        y: y + 1
+      });
+    }
   },
   // 旋转  顺时针
   turnRotate: function () {
-    const { start, turn, direction } = this.data;
+    const { start, direction } = this.data;
     if (!start) return;
+    this.animationBtn(2);
     const isAllow = this.checkRotateBoundary();
     if (isAllow) {
       this.setData({
@@ -206,8 +260,9 @@ Page({
   },
   // 左移  将centerX -1 todo 需要检查四个点中最左边的点x > 0 && lockedPoints中没有
   turnLeft: function () {
-    const { start, centerX, turn } = this.data;
+    const { start, centerX } = this.data;
     if (!start) return;
+    this.animationBtn(1);
     const isAllow = this.checkLeftBoundary()
     if (isAllow) {
       this.setData({
@@ -219,6 +274,7 @@ Page({
   turnRight: function () {
     const { start, centerX, turn } = this.data;
     if (!start) return;
+    this.animationBtn(4);
     const isAllow = this.checkRightBoundary()
     if (isAllow) {
       this.setData({
@@ -256,6 +312,12 @@ Page({
     return this.data.activePoints.every((point) => {
       return point[1] > 0
     });
+  },
+  // 检查 当前掉落的点的左边界 是否合规
+  checkDownBoundary: function () {
+    const { direction, centerX, y, random } = this.data;
+    const activePoints = BOXES[random][direction](centerX, y + 1);
+    return !this.checkCompliance(activePoints);
   },
   // 检查 activePoints中的点 是否被 locked
   checkCompliance: function (activePoints) {

@@ -1,6 +1,6 @@
 <!--unit模块-->
 <template name="unit">
-  <i class="unit {{ active && 'active'}} {{ locked && 'locked'}} {{ noticed && 'noticed'}}" style="height:{{1000 / rows + 'rpx'}};"/>
+  <i class="unit {{ active ? 'active' : '' }} {{ locked ? 'locked' : ''}} {{ noticed ? 'noticed' : ''}}" style="height:{{1000 / rows + 'rpx'}};"/>
 </template>
 <!--index.wxml-->
 <template name="test">
@@ -25,28 +25,39 @@
     </view>
     <!--分数记录-->
     <view class="display-fraction">
-    消除行数： {{fraction}}
+      <view>
+        得分： {{fraction}}
+      </view>
+      <view>
+        消除行数： {{clearLines}}
+      </view>
+      <view>
+        级别 {{level}}
+      </view>
+      <view>
+        下一个： {{nextRandom}}
+      </view>
     </view>
   </view>
   <!--操作区-->
   <view class="action-container">
     <view>
       <view class="control-btns">
-        <i class="act-btn smart btn-pause" bindtap="pause">{{start ? '暂停' : '开始'}}</i>
-        <i class="act-btn smart btn-pause" bindtap="restart">重玩</i>
+        <i animation="{{animationData5}}" class="act-btn smart btn-pause" bindtap="pause">{{start ? '暂停' : '开始'}}</i>
+        <i animation="{{animationData6}}" class="act-btn smart btn-pause" bindtap="restart">重玩</i>
       </view>
-      <i class="act-btn btn-change" bindtap="turnDown">掉落</i>
+      <i animation="{{animationData0}}" class="act-btn btn-change" bindtap="dropDown">掉落</i>
     </view>
     <view class="direction-btns">
       <view>
-        <i class="act-btn btn-left" bindtap="turnLeft">左移</i>
+        <i animation="{{animationData1}}" class="act-btn btn-left" bindtap="turnLeft">左移</i>
       </view>
       <view class="act-btn-center">
-        <i class="act-btn btn-top" bindtap="turnRotate">旋转</i>
-        <i class="act-btn btn-bottom">下移</i>
+        <i animation="{{animationData2}}" class="act-btn btn-top" bindtap="turnRotate">旋转</i>
+        <i animation="{{animationData3}}" class="act-btn btn-bottom" bindtap="turnDown">下移</i>
       </view>
       <view>
-        <i class="act-btn btn-right" bindtap="turnRight">右移</i>
+        <i animation="{{animationData4}}" class="act-btn btn-right" bindtap="turnRight">右移</i>
       </view>
     </view>
   </view>

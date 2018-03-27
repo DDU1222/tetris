@@ -7,10 +7,10 @@
   align-items: center;
   justify-content: space-between;
   height: 70%;
-  background: #F2D7EE;
+  background: rgb(202, 136, 248);
   width: 100%;
-  padding: 16rpx;
-  border: 10rpx solid #0E103D;
+  padding: 24rpx;
+  /* border: 10rpx solid #0E103D; */
   box-sizing: border-box;
 }
 
@@ -19,8 +19,11 @@
   flex-direction: row;
   width: 60%;
   height: 100%;
-  border: 4rpx solid #0E103D;
+  border: 4rpx solid rgb(209, 182, 224);
+  border-radius: 8rpx;
   padding: 2rpx;
+  background: #FFE4F3;
+  box-shadow: 3rpx 3rpx 20rpx rgba(0,0,0,0.8);
 }
 
 .display-block .column{
@@ -31,23 +34,24 @@
 .unit {
   display: inline-block;
   width: 100%;
-  border: 2rpx solid #F2D7EE;
-  padding: 2rpx;
-  background: rgba(0,0,0,0.1);
+  border: 1rpx solid #F2D7EE;
+  /* padding: 2rpx; */
+  /* background: rgba(0,0,0,0.1); */
   position: relative;
   box-sizing: border-box;
+  border-radius:6rpx;
 }
 
-.active {
-  background: rgba(0,0,0,1);
+.active{
+  background: #ED6A5E;
 }
 
 .locked {
-  background: rgba(0,0,0,1);
+  background: rgb(234,146,238);
 }
 
 .noticed {
-  background: rgba(255,0,0,0.5);
+  background: rgb(233,226,145);
 }
 .unit::after {
   content: '';
@@ -58,22 +62,29 @@
   top: 50%;
   left: 50%;
   transform: translate(-50%, -50%);
-  border: 4rpx solid #F2D7EE;
+  /* border: 4rpx solid #F2D7EE; */
 }
 
 .display-fraction {
   width: 40%;
   height: 100%;
+  box-sizing: border-box;
+  padding-left: 40rpx;
+  font-size: 28rpx;
+  color:#fff;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-around;
 }
 /**操作区**/
 .action-container {
   width: 100%;
   display: flex;
   height: 30%;
-  background: #0E103D;
-  justify-content: space-between;
-  padding: 16rpx;
   box-sizing: border-box;
+  background: rgb(202, 136, 248);
+  justify-content: space-between;
+  padding: 16rpx 40rpx;
 }
 
 .act-btn {
@@ -88,7 +99,7 @@
   /* border: 1rpx solid #000; */
   border-radius: 50%;
   box-shadow: 0 3rpx 3rpx rgba(0,0,0,.2);
-  background: #5a65f1;
+  background: rgb(141, 203, 239);
 }
 
 .act-btn::before {
@@ -100,7 +111,7 @@
   top: 0;
   left: 0;
   border-radius: 50%;
-  box-shadow: inset 0 5rpx 10rpx hsla(0,0%,100%,.8);
+  box-shadow: inset 0 5rpx 10rpx hsla(0,0%,100%,.6);
 }
 
 .act-btn::after {
@@ -112,7 +123,7 @@
   top: 0;
   left: 0;
   border-radius: 50%;
-  box-shadow: inset 0 -5rpx  10rpx rgba(0,0,0,.8);
+  box-shadow: inset 0 -5rpx  10rpx rgba(0,0,0,.6);
 }
 
 .smart {

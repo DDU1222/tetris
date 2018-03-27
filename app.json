@@ -4,8 +4,8 @@
     "pages/logs/logs"
   ],
   "window":{
-    "navigationBarBackgroundColor": "#0E103D",
+    "navigationBarBackgroundColor": "#fff",
     "navigationBarTitleText": "俄罗斯方块",
-    "navigationBarTextStyle":"#fff"
+    "navigationBarTextStyle":"black"
   }
 }

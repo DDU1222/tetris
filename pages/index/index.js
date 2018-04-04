@@ -22,6 +22,7 @@ Page({
     lockedPoints: [],  // 已经固定的方块点集合
     readyPoints: [],
     speed: 500,
+    turn: false,
     direction: 0, // 默认是top
     readyCols: [],
     blinkingCols: [],
@@ -39,46 +40,48 @@ Page({
   // 初始设置
   start: function () {
     const { speed, start, nextRandom } = this.data;
-    // 已经开始 
-    if (start) {
-      this.setData({
-        random: nextRandom,
-        nextRandom: this.createRandom(),
-      }, () => {
-        this.createReadyPoints();
-        this.setStartLocation();
-        this.autoDrop(speed);
-      });
-      // 未开始
-    } else {
-      this.setData({
-        start: true,
-        random: this.createRandom(),
-        nextRandom: this.createRandom(),
-      }, () => {
-        this.setStartLocation();
-        this.autoDrop(speed);
-      });
-    }
+    this.setData({
+      random: nextRandom,
+      nextRandom: this.createRandom(),
+      turn: false
+    }, () => { 
+      start && this.createReadyPoints();
+      this.setStartLocation();
+      this.autoDrop(speed);
+    });
   },
   // 开始掉落
   autoDrop: function (speed) {
-    const { rows, lockedPoints, random } = this.data;
     clearInterval(this.timeCount);
     this.timeCount = setInterval(() => {
-      if (BOXES[random] && this.data.y < rows) {
-        // 每掉落一格 重新计算点
-        let activePoints = BOXES[random][this.data.direction](this.data.centerX, this.data.y);
-        const isExist = this.checkCompliance(activePoints);
-        if (isExist) {
-          this.mergePoints();
-        } else {
-          this.setData({ activePoints, y: this.data.y + 1, turn: false });
-        }
-      } else {
-        this.mergePoints();
-      }
+      this.actionMove('drop');
     }, speed);
+  },
+  // 执行移动
+  actionMove: function (direction) {
+    let y;
+    switch (direction) {
+      case 'left':
+      case 'right':
+      case 'rotate':
+        y = this.data.y;
+      case 'drop':
+      case 'down':
+        y = this.data.y + 1;
+    }
+    const { rows, lockedPoints, random } = this.data;
+    if (BOXES[random] && this.data.y < rows) {
+      // 每掉落一格 重新计算点
+      let activePoints = BOXES[random][this.data.direction](this.data.centerX, this.data.y);
+      const isExist = this.checkCompliance(activePoints);
+      if (isExist) {
+        this.mergePoints();
+      } else {
+        this.setData({ activePoints, y, turn: false });
+      }
+    } else {
+      this.mergePoints();
+    }
   },
   gameOverAnimation: function () {
     const { rows } = this.data;
@@ -97,9 +100,11 @@ Page({
     }
   },
   createReadyPoints: function () {
-    this.setData({
-      readyPoints: BOXES[this.data.nextRandom][0](1, 1)
-    });
+    if (this.data.nextRandom) {
+      this.setData({
+        readyPoints: BOXES[this.data.nextRandom][0](1, 1)
+      });
+    }
   },
   // 游戏结束
   stopGame: function () {
@@ -129,6 +134,7 @@ Page({
       this.setData({ start: false });
     }
   },
+  // 重置数据
   resetData: function () {
     return new Promise((resolve, reject) => {
       this.setData({
@@ -169,6 +175,7 @@ Page({
     clearInterval(this.timeCount);
     this.setData({
       lockedPoints: this.data.lockedPoints.concat(this.data.activePoints),
+      turn: true
     }, () => {
       const newPoints = this.clearLines();
       if (this.data.readyCols.length) {
@@ -187,6 +194,7 @@ Page({
       }
     });
   },
+  // 闪烁要消除的行
   blinking: function () {
     return new Promise((resolve, reject) => {
       let count = 0;
@@ -247,6 +255,7 @@ Page({
       return lockedPoints;
     }
   },
+  // 点击按钮动画效果
   animationBtn: function(num) {
     var animation = wx.createAnimation({
       duration: 40,
@@ -264,57 +273,65 @@ Page({
   },
   // 快速掉落
   dropDown: function () {
-    const { start } = this.data;
-    if (!start) return;
+    const { start, turn } = this.data;
+    if (!start || turn) return;
     // 之后 就是直接掉落
     this.animationBtn(0);
     this.autoDrop(5);
   },
   // 下移
   turnDown: function () {
-    const { start, y } = this.data;
-    if (!start) return;
+    const { start, y, turn } = this.data;
+    if (!start || turn) return;
     this.animationBtn(3);
     const isAllow = this.checkDownBoundary()
     if (isAllow) {
       this.setData({
         y: y + 1
+      }, () => {
+        this.actionMove('down');
       });
     }
   },
   // 旋转  顺时针
   turnRotate: function () {
-    const { start, direction } = this.data;
-    if (!start) return;
+    const { start, direction, turn } = this.data;
+    if (!start || turn) return;
     this.animationBtn(2);
     const isAllow = this.checkRotateBoundary();
     if (isAllow) {
       this.setData({
         direction: direction === 3 ? 0 : direction + 1
+      }, () => {
+        this.actionMove('rotate');
       });
     }
   },
   // 左移  将centerX -1 todo 需要检查四个点中最左边的点x > 0 && lockedPoints中没有
   turnLeft: function () {
-    const { start, centerX } = this.data;
-    if (!start) return;
+    const { start, centerX, turn } = this.data;
+    if (!start || turn) return;
     this.animationBtn(1);
     const isAllow = this.checkLeftBoundary()
     if (isAllow) {
       this.setData({
         centerX: centerX - 1
+      }, () => {
+        this.actionMove('left');
       });
     }
   },
   // 右移  将centerX + 1 todo 需要检查四个点中最右边的点x < columns && lockedPoints中没有
   turnRight: function () {
     const { start, centerX, turn } = this.data;
-    if (!start) return;
+    if (!start || turn) return;
     this.animationBtn(4);
     const isAllow = this.checkRightBoundary()
     if (isAllow) {
       this.setData({
         centerX: centerX + 1
+      }, () => {
+        this.actionMove('right');
       });
     }
   },
@@ -354,8 +371,8 @@ Page({
   // 检查 当前掉落的点的左边界 是否合规
   checkDownBoundary: function () {
     const { direction, centerX, y, random } = this.data;
-    const activePoints = BOXES[random][direction](centerX, y + 1);
-    return !this.checkCompliance(activePoints);
+    const activePoints1 = BOXES[random][direction](centerX, y + 1);
+    return !this.checkCompliance(activePoints1);
   },
   // 检查 activePoints中的点 是否被 locked
   checkCompliance: function (activePoints) {

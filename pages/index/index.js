@@ -1,6 +1,7 @@
 //index.js
 const CONFIG = require('../../lib/config.js');
 const util = require('../../lib/util.js');
+const music = require('../../lib/music.js');
 
 const { BOXES } = CONFIG;
 //获取应用实例
@@ -112,6 +113,7 @@ Page({
     clearInterval(this.timeCount);
     this.resetData()
     .then(() => {
+      music.gameover();
       this.gameOverAnimation();
       wx.showToast({
         title: '游戏结束！',
@@ -125,6 +127,7 @@ Page({
     const { start, lockedPoints, speed } = this.data;
     this.animationBtn(5);
     if (!start) {
+      music.start();
       // 第一次 开始掉落
       this.setData({ start: true }, () => {
         this.autoDrop(speed);
@@ -180,6 +183,7 @@ Page({
       const newPoints = this.clearLines();
       if (this.data.readyCols.length) {
         console.log('有需要消除的行', newPoints);
+        music.clear();
         this.blinking().then(() => {
           this.setData({
             lockedPoints: newPoints,
@@ -277,6 +281,7 @@ Page({
     if (!start || turn) return;
     // 之后 就是直接掉落
     this.animationBtn(0);
+    music.drop();
     this.autoDrop(5);
   },
   // 下移
@@ -284,6 +289,7 @@ Page({
     const { start, y, turn } = this.data;
     if (!start || turn) return;
     this.animationBtn(3);
+    music.move();
     const isAllow = this.checkDownBoundary()
     if (isAllow) {
       this.setData({
@@ -298,6 +304,7 @@ Page({
     const { start, direction, turn } = this.data;
     if (!start || turn) return;
     this.animationBtn(2);
+    music.rotate();
     const isAllow = this.checkRotateBoundary();
     if (isAllow) {
       this.setData({
@@ -312,6 +319,7 @@ Page({
     const { start, centerX, turn } = this.data;
     if (!start || turn) return;
     this.animationBtn(1);
+    music.move();
     const isAllow = this.checkLeftBoundary()
     if (isAllow) {
       this.setData({
@@ -326,6 +334,7 @@ Page({
     const { start, centerX, turn } = this.data;
     if (!start || turn) return;
     this.animationBtn(4);
+    music.move();
     const isAllow = this.checkRightBoundary()
     if (isAllow) {
       this.setData({
